@@ -1,0 +1,149 @@
+import { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons"; 
+
+import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
+
+import Button from "@/src/components/Button";
+import Input from "@/src/components/Input";
+import TemplateTelaFormulario from "@/src/components/TemplateTelaFormulario";
+
+type FormFields = {
+  nome: string;
+  email: string;
+  senha: string;
+  confirmarSenha: string;
+};
+
+export default function Cadastro() {
+  const [form, setForm] = useState<FormFields>({
+    nome: "",
+    email: "",
+    senha: "",
+    confirmarSenha: "",
+  });
+
+  const [errors, setErrors] = useState<Partial<FormFields>>({});
+  const [loading, setLoading] = useState(false);
+
+  const updateField = (field: keyof FormFields, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Partial<FormFields> = {};
+    if (!form.nome.trim()) newErrors.nome = "Nome é obrigatório";
+    if (!form.email.includes("@")) newErrors.email = "E-mail inválido";
+    if (form.senha.length < 6) newErrors.senha = "A senha deve ter pelo menos 6 caracteres";
+    if (form.senha !== form.confirmarSenha) newErrors.confirmarSenha = "As senhas não coincidem";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCadastro = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      router.replace("/(tabs)"); 
+    }, 2000);
+  };
+
+  return (
+    <TemplateTelaFormulario>
+     
+      <View style={styles.header}>
+        <View style={styles.logoBox}>
+          <Ionicons name="card" size={40} color={Colors.white} />
+        </View>
+        <Text style={styles.title}>Criar conta</Text>
+      </View>
+
+      <View style={styles.form}>
+        <Input
+          label="Nome completo"
+          leftIcon="person-outline"
+          value={form.nome}
+          onChangeText={(v) => updateField("nome", v)}
+          error={errors.nome}
+          placeholder="João Silva"
+          autoCapitalize="words"
+        />
+        <Input
+          label="E-mail"
+          leftIcon="mail-outline"
+          value={form.email}
+          onChangeText={(v) => updateField("email", v)}
+          error={errors.email}
+          placeholder="joao@email.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <Input
+          label="Senha"
+          leftIcon="lock-closed-outline"
+          value={form.senha}
+          onChangeText={(v) => updateField("senha", v)}
+          error={errors.senha}
+          placeholder="••••••"
+          isPassword
+        />
+        <Input
+          label="Confirmar senha"
+          leftIcon="lock-closed-outline"
+          value={form.confirmarSenha}
+          onChangeText={(v) => updateField("confirmarSenha", v)}
+          error={errors.confirmarSenha}
+          placeholder="••••"
+          isPassword
+        />
+      </View>
+
+      <Button
+        label="Criar Conta"
+        onPress={handleCadastro}
+        loading={loading}
+        fullWidth
+      />
+
+      <TouchableOpacity style={styles.footer} onPress={() => router.back()}>
+        <Text style={styles.footerText}>Já tenho conta</Text>
+      </TouchableOpacity>
+    </TemplateTelaFormulario>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: { 
+    alignItems: "center", 
+    marginBottom: Spacing[8] 
+  },
+  logoBox: { 
+    backgroundColor: Colors.primary[600], 
+    padding: Spacing[4], 
+    borderRadius: Radius.xl, 
+    marginBottom: Spacing[3] 
+  },
+  title: { 
+    fontSize: Typography.fontSize.xl, 
+    fontWeight: Typography.fontWeight.bold, 
+    color: Colors.textPrimary 
+  },
+  form: { 
+    marginBottom: Spacing[5] 
+  },
+  footer: { 
+    marginTop: Spacing[5], 
+    alignItems: "center" 
+  },
+  footerText: { 
+    color: Colors.primary[600], 
+    fontWeight: Typography.fontWeight.bold,
+    fontSize: Typography.fontSize.md
+  },
+});
