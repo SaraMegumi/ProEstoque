@@ -41,7 +41,7 @@ export default function TemplateTelaFormulario({ children }: TemplateProps) {
 const styles = StyleSheet.create({
   safe:   { 
     flex: 1, 
-    backgroundColor: Colors.white 
+    backgroundColor: Colors.surface
   },
   flex:   { 
     flex: 1 

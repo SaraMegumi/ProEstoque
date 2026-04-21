@@ -9,6 +9,8 @@ import Button from '@/src/components/Button';
 import Input from '@/src/components/Input';
 import TemplateTelaFormulario from '@/src/components/TemplateTelaFormulario';
 
+import LogoProEstoque from '@/src/components/LogoProEstoque';
+
 export default function Login() {
   
   const handleLogin = () => {
@@ -19,11 +21,9 @@ export default function Login() {
   return (
     <TemplateTelaFormulario>
       
+    
       <View style={styles.header}>
-        <View style={styles.logoBox}>
-          <Ionicons name="wallet-outline" size={48} color={Colors.white} />
-        </View>
-        <Text style={styles.title}>ProEstoque</Text>
+        <LogoProEstoque size="lg" /> 
         <Text style={styles.subtitle}>Bem-vindo de volta</Text>
       </View>
 

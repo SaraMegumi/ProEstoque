@@ -8,6 +8,7 @@ import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
 import Button from "@/src/components/Button";
 import Input from "@/src/components/Input";
 import TemplateTelaFormulario from "@/src/components/TemplateTelaFormulario";
+import LogoProEstoque from "@/src/components/LogoProEstoque";
 
 type FormFields = {
   nome: string;
@@ -57,12 +58,13 @@ export default function Cadastro() {
   return (
     <TemplateTelaFormulario>
      
-      <View style={styles.header}>
-        <View style={styles.logoBox}>
-          <Ionicons name="card" size={40} color={Colors.white} />
+      <View style={styles.header}>      
+          <LogoProEstoque size="md" />
+          <Ionicons name="card" size={0} color={Colors.primary[600]} />
+          <Text style={styles.title}>Criar conta</Text>
         </View>
-        <Text style={styles.title}>Criar conta</Text>
-      </View>
+        
+      
 
       <View style={styles.form}>
         <Input

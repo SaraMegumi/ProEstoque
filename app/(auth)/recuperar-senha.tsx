@@ -9,6 +9,8 @@ import Button from '@/src/components/Button';
 import Input from '@/src/components/Input';
 import TemplateTelaFormulario from '@/src/components/TemplateTelaFormulario';
 
+import LogoProEstoque from '@/src/components/LogoProEstoque';
+
 export default function RecuperarSenha() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [email, setEmail] = useState('');
@@ -30,12 +32,10 @@ export default function RecuperarSenha() {
         <Text style={styles.backText}>Voltar</Text>
       </TouchableOpacity>
 
-      <View style={styles.content}>
-        <View style={styles.logoBox}>
-          <Ionicons name="lock-open" size={40} color={Colors.white} />
-        </View>
-
-        <Text style={styles.title}>Recuperar senha</Text>
+        <View style={styles.content}>
+          <LogoProEstoque size="md" />
+          <Ionicons name="lock-open-outline" size={40} color={Colors.primary[600]} />
+          <Text style={styles.title}>Recuperar senha</Text>
         
         {!isSuccess ? (
           <>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.bold 
   },
   content: { 
-    alignItems: 'center' 
+    alignItems: 'center'
   },
   logoBox: { 
     backgroundColor: Colors.primary[600], 
