@@ -1,11 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
 import { PRODUTOS_MOCK, getProdutosComEstoqueBaixo, getValorTotalEstoque, formatarPreco } from '@/src/data/mockData';
+import { useAuth } from '@/src/contexts/AuthContext'; 
+
+function getSaudacao(): string {
+  const hora = new Date().getHours();
+  if (hora < 12) return 'Bom dia';
+  if (hora < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
 
 export default function Dashboard() {
+  const { user } = useAuth(); // ← AULA 7
   const alertas = getProdutosComEstoqueBaixo();
   const recentes = PRODUTOS_MOCK.slice(0, 10);
 
@@ -23,16 +32,20 @@ export default function Dashboard() {
     { id: '4', label: 'Estoque', value: formatarPreco(getValorTotalEstoque()), icon: 'cash', status: Colors.success },
   ];
 
+  const primeiroNome = user?.nome?.split(' ')[0] ?? 'Usuário';
+  const inicial = user?.nome?.charAt(0).toUpperCase() ?? 'U';
+
   const renderHeader = () => (
     <View>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.headerTitle}>Olá, João 👋</Text>
+          <Text style={styles.headerTitle}>{getSaudacao()}, {primeiroNome} 👋</Text>
           <Text style={styles.date}>{dataDeHoje.charAt(0).toUpperCase() + dataDeHoje.slice(1)}</Text>
         </View>
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={26} color={Colors.white} />
-        </TouchableOpacity>
+
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{inicial}</Text>
+        </View>
       </View>
 
       <View style={styles.summaryGrid}>
@@ -72,7 +85,7 @@ export default function Dashboard() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
-      
+
       <FlatList
         data={recentes}
         keyExtractor={(item) => item.id}
@@ -93,7 +106,7 @@ export default function Dashboard() {
                   <Text style={styles.productStock}>{item.quantidade} unidades</Text>
                 </View>
               </View>
-              
+
               <View style={[styles.badge, { backgroundColor: status.bg }]}>
                 <Text style={[styles.badgeText, { color: status.text }]}>
                   {baixo ? 'Baixo' : 'Normal'}
@@ -116,20 +129,29 @@ const styles = StyleSheet.create({
     marginTop: Spacing[4],
     marginBottom: Spacing[5],
   },
-  
   headerTitle: {
-    fontSize: Typography.fontSize['3xl'],
+    fontSize: 22,
     fontWeight: Typography.fontWeight.bold,
     color: Colors.textPrimary,
   },
-  addButton: {
-    width: 44, height: 44, borderRadius: Radius.full,
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.full,
     backgroundColor: Colors.primary[600],
-    justifyContent: 'center', alignItems: 'center',
-    elevation: 4, shadowColor: Colors.primary[600],
-    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: Colors.primary[600],
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
-  
+  avatarText: {
+    color: '#fff',
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.bold,
+  },
   summaryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -152,11 +174,11 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
   },
-  date:{
-    fontSize: Typography.fontSize.lg, color: Colors.textSecondary, marginTop: 2
-
+  date: {
+    fontSize: Typography.fontSize.lg,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
-
   criticalAlert: {
     backgroundColor: Colors.danger.bg,
     padding: Spacing[4],
@@ -165,79 +187,79 @@ const styles = StyleSheet.create({
     borderColor: Colors.danger.border,
     marginBottom: Spacing[6],
   },
-  alertHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 8, 
-    marginBottom: Spacing[3] 
+  alertHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: Spacing[3],
   },
-  alertTitle: { 
-    color: Colors.danger.text, 
-    fontWeight: Typography.fontWeight.bold, 
-    fontSize: Typography.fontSize.sm
-   },
-  alertRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginBottom: 4 
+  alertTitle: {
+    color: Colors.danger.text,
+    fontWeight: Typography.fontWeight.bold,
+    fontSize: Typography.fontSize.sm,
   },
-  alertName: { 
-    color: Colors.textSecondary, 
-    fontSize: Typography.fontSize.sm 
+  alertRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  alertQty: { 
-    color: Colors.danger.text, 
-    fontWeight: Typography.fontWeight.bold 
+  alertName: {
+    color: Colors.textSecondary,
+    fontSize: Typography.fontSize.sm,
   },
-  viewAll: { 
-    textAlign: 'right', 
-    color: Colors.primary[600], 
-    fontWeight: 'bold', 
-    fontSize: Typography.fontSize.xs, 
-    marginTop: Spacing[2] 
+  alertQty: {
+    color: Colors.danger.text,
+    fontWeight: Typography.fontWeight.bold,
   },
-
-  listContent: { 
-    paddingHorizontal: Spacing[5], 
-    paddingBottom: Spacing[10] 
+  viewAll: {
+    textAlign: 'right',
+    color: Colors.primary[600],
+    fontWeight: 'bold',
+    fontSize: Typography.fontSize.xs,
+    marginTop: Spacing[2],
+  },
+  listContent: {
+    paddingHorizontal: Spacing[5],
+    paddingBottom: Spacing[10],
   },
   card: {
     backgroundColor: Colors.white,
-    paddingHorizontal: Spacing[4], paddingVertical: Spacing[3],
-    borderRadius: Radius.xl, flexDirection: 'row',
-    justifyContent: 'space-between', alignItems: 'center',
-    marginBottom: Spacing[3], borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[3],
+    borderRadius: Radius.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing[3],
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  cardInfo: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  cardInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  iconWrapper: { 
-    padding: Spacing[2], 
-    borderRadius: Radius.md, 
-    marginRight: Spacing[3] 
+  iconWrapper: {
+    padding: Spacing[2],
+    borderRadius: Radius.md,
+    marginRight: Spacing[3],
   },
-  productName: { 
-    fontWeight: Typography.fontWeight.semibold, 
-    fontSize: Typography.fontSize.base, 
-    color: Colors.textPrimary 
+  productName: {
+    fontWeight: Typography.fontWeight.semibold,
+    fontSize: Typography.fontSize.base,
+    color: Colors.textPrimary,
   },
-  productStock: { 
-    fontSize: Typography.fontSize.md, 
-    color: Colors.textSecondary, 
-    marginTop: 2 
+  productStock: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
-  badge: { 
-    paddingHorizontal: Spacing[3], 
-    paddingVertical: Spacing[1], 
-    borderRadius: Radius.full 
+  badge: {
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[1],
+    borderRadius: Radius.full,
   },
-  badgeText: { 
-    fontSize: Typography.fontSize.xs, 
-    fontWeight: Typography.fontWeight.semibold 
+  badgeText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: Typography.fontWeight.semibold,
   },
 });
-
-function setRefreshing(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}

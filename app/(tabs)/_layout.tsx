@@ -1,7 +1,12 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/src/contexts/AuthContext'; 
 
 export default function TabLayout() {
+  const { isAuthenticated, isLoading } = useAuth(); 
+
+  if (isLoading || !isAuthenticated) return null;
+
   return (
     <Tabs
       screenOptions={{

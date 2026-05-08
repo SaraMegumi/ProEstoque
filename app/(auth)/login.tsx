@@ -1,33 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react'; 
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-
 import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
-
 import Button from '@/src/components/Button';
 import Input from '@/src/components/Input';
 import TemplateTelaFormulario from '@/src/components/TemplateTelaFormulario';
-
 import LogoProEstoque from '@/src/components/LogoProEstoque';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 export default function Login() {
-  
-  const handleLogin = () => {
-   
-    router.replace("/(tabs)");
+  const { login, isLoading } = useAuth(); 
+
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+
+  const handleLogin = async () => {
+    await login(email, senha);
   };
 
   return (
     <TemplateTelaFormulario>
-      
-    
       <View style={styles.header}>
         <LogoProEstoque size="lg" /> 
         <Text style={styles.subtitle}>Bem-vindo de volta</Text>
       </View>
-
-      
       <View style={styles.form}>
         <Input 
           label="E-mail"
@@ -35,15 +31,17 @@ export default function Login() {
           leftIcon="mail-outline"
           keyboardType="email-address"
           autoCapitalize="none"
+          value={email}           
+          onChangeText={setEmail} 
         />
-
         <Input 
           label="Senha"
           placeholder="Digite sua senha"
           leftIcon="lock-closed-outline"
           isPassword={true}
+          value={senha}           
+          onChangeText={setSenha} 
         />
-
         <TouchableOpacity 
           style={styles.forgotPass} 
           onPress={() => router.push("/(auth)/recuperar-senha")}
@@ -52,12 +50,13 @@ export default function Login() {
         </TouchableOpacity>
       </View>
 
-      
       <Button 
         label="Entrar" 
         onPress={handleLogin} 
         variant="primary" 
-        fullWidth={true} 
+        fullWidth={true}
+        loading={isLoading}
+        disabled={isLoading}
       />
 
       <TouchableOpacity 
