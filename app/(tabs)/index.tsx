@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react'; 
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
-import { PRODUTOS_MOCK, getProdutosComEstoqueBaixo, getValorTotalEstoque, formatarPreco } from '@/src/data/mockData';
 import { useAuth } from '@/src/contexts/AuthContext'; 
+import { useProducts } from '@/src/contexts/ProductsContext';
 
 function getSaudacao(): string {
   const hora = new Date().getHours();
@@ -14,9 +14,13 @@ function getSaudacao(): string {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth(); // ← AULA 7
-  const alertas = getProdutosComEstoqueBaixo();
-  const recentes = PRODUTOS_MOCK.slice(0, 10);
+  const { user } = useAuth();
+  const { products } = useProducts(); 
+
+  const alertas = products.filter(p => p.quantidade <= (p.minimo ?? 0));
+  const valorTotal = products.reduce((acc, p) => acc + (p.preco * p.quantidade), 0);
+  const categoriasUnicas = [...new Set(products.map(p => p.categoria))].length;
+  const recentes = [...products].reverse().slice(0, 5);
 
   const dataDeHoje = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -26,10 +30,10 @@ export default function Dashboard() {
   });
 
   const cardsResumo = [
-    { id: '1', label: 'Produtos', value: PRODUTOS_MOCK.length, icon: 'cube', status: Colors.info },
+    { id: '1', label: 'Produtos', value: products.length, icon: 'cube', status: Colors.info },
     { id: '2', label: 'Alertas', value: alertas.length, icon: 'alert-circle', status: Colors.danger },
-    { id: '3', label: 'Categorias', value: '8', icon: 'grid', status: { bg: '#F3F4F6', text: Colors.primary[600] } },
-    { id: '4', label: 'Estoque', value: formatarPreco(getValorTotalEstoque()), icon: 'cash', status: Colors.success },
+    { id: '3', label: 'Categorias', value: categoriasUnicas, icon: 'grid', status: { bg: '#F3F4F6', text: Colors.primary[600] } },
+    { id: '4', label: 'Estoque', value: `R$ ${valorTotal.toFixed(2)}`, icon: 'cash', status: Colors.success },
   ];
 
   const primeiroNome = user?.nome?.split(' ')[0] ?? 'Usuário';
@@ -67,7 +71,7 @@ export default function Dashboard() {
           {alertas.slice(0, 2).map(item => (
             <View key={item.id} style={styles.alertRow}>
               <Text style={styles.alertName}>{item.nome}</Text>
-              <Text style={styles.alertQty}>{item.quantidade} un</Text>
+              <Text style={styles.alertQty}>{item.quantidade} {item.unidade}</Text> 
             </View>
           ))}
           <TouchableOpacity>
@@ -77,7 +81,7 @@ export default function Dashboard() {
       )}
 
       <Text style={[styles.headerTitle, { fontSize: Typography.fontSize.lg, marginBottom: Spacing[3] }]}>
-        Produtos recentes
+        Últimos adicionados
       </Text>
     </View>
   );
@@ -91,9 +95,11 @@ export default function Dashboard() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={<Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>Nenhum produto cadastrado.</Text>}
         renderItem={({ item }) => {
-          const baixo = item.quantidade < 5;
-          const status = baixo ? Colors.warning : Colors.success;
+          const semEstoque = item.quantidade === 0;
+          const baixo = item.quantidade <= (item.minimo ?? 0);
+          const status = semEstoque ? Colors.danger : baixo ? Colors.warning : Colors.success;
 
           return (
             <View style={styles.card}>
@@ -103,13 +109,13 @@ export default function Dashboard() {
                 </View>
                 <View>
                   <Text style={styles.productName}>{item.nome}</Text>
-                  <Text style={styles.productStock}>{item.quantidade} unidades</Text>
+                  <Text style={styles.productStock}>{item.quantidade} {item.unidade}</Text>
                 </View>
               </View>
 
               <View style={[styles.badge, { backgroundColor: status.bg }]}>
                 <Text style={[styles.badgeText, { color: status.text }]}>
-                  {baixo ? 'Baixo' : 'Normal'}
+                  {semEstoque ? 'Esgotado' : baixo ? 'Baixo' : 'Normal'}
                 </Text>
               </View>
             </View>

@@ -2,75 +2,89 @@ import { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView, StatusBar, SectionList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
-import { CATEGORIAS_MOCK, Produto, PRODUTOS_MOCK } from '@/src/data/mockData';
+import { useProducts } from '@/src/contexts/ProductsContext';
 import React from 'react';
 
 const FILTROS = ['Todos', 'Bebidas', 'Alimentos', 'Limpeza', 'Papelaria', 'Eletrônicos'];
 
+const normalizar = (str: string) =>
+  str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 export default function Produtos() {
+  const router = useRouter();
+  const { products } = useProducts();
+  
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [viewMode, setViewMode] = useState<'lista' | 'grade' | 'categoria'>('lista');
 
   const filteredData = useMemo(() => {
-    return PRODUTOS_MOCK.filter((produto) => {
-      const matchesSearch = produto.nome.toLowerCase().includes(search.toLowerCase());
-      const matchesFilter = activeFilter === 'Todos' || 
-        CATEGORIAS_MOCK.find(cat => cat.id === produto.categoriaId)?.nome === activeFilter;
+    return products.filter((produto: any) => {
+      const matchesSearch = normalizar(produto.nome).includes(normalizar(search));
+      const matchesFilter = activeFilter === 'Todos' || normalizar(produto.categoria) === normalizar(activeFilter);
       return matchesSearch && matchesFilter;
     });
-  }, [search, activeFilter]);
+  }, [search, activeFilter, products]);
 
   const sections = useMemo(() => {
     if (viewMode !== 'categoria') return [];
-    return CATEGORIAS_MOCK.map(cat => ({
-      title: cat.nome,
-      data: filteredData.filter(p => p.categoriaId === cat.id)
+    const categoriasExistentes = [...new Set(products.map((p: any) => p.categoria))];
+    
+    return categoriasExistentes.map(cat => ({
+      title: String(cat),
+      data: filteredData.filter((p: any) => p.categoria === cat)
     })).filter(section => section.data.length > 0);
-  }, [filteredData, viewMode]);
+  }, [filteredData, viewMode, products]);
 
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="search-outline" size={60} color={Colors.textSecondary} />
       <Text style={styles.emptyText}>Ops! Nenhum produto encontrado.</Text>
-      <Text style={styles.emptySubtext}>Tente mudar o nome na busca ou a categoria.</Text>
+      <Text style={styles.emptySubtext}>Tente cadastrar um novo produto no botão +.</Text>
     </View>
   );
 
-  const renderItem = ({ item }: { item: Produto }) => {
+  const renderItem = ({ item }: { item: any }) => {
     const semEstoque = item.quantidade === 0;
-    const baixo = item.quantidade > 0 && item.quantidade < 5;
+    const baixo = item.quantidade > 0 && item.quantidade <= (item.minimo ?? 0);
     const status = semEstoque ? Colors.danger : baixo ? Colors.warning : Colors.success;
     const statusLabel = semEstoque ? 'Sem estoque' : baixo ? 'Baixo' : 'Normal';
 
-    if (viewMode === 'grade') {
-      return (
-        <View style={styles.cardGrade}>
-          <View style={[styles.iconWrapperGrade, { backgroundColor: status.bg }]}>
-            <Ionicons name="cube" size={28} color={status.text} />
+    const CardContent = () => (
+      <>
+        {viewMode === 'grade' ? (
+          <View style={styles.cardGrade}>
+            <View style={[styles.iconWrapperGrade, { backgroundColor: status.bg }]}>
+              <Ionicons name="cube" size={28} color={status.text} />
+            </View>
+            <Text style={styles.productNameGrade} numberOfLines={1}>{item.nome}</Text>
+            <Text style={styles.productStock}>Estoque: {item.quantidade} {item.unidade}</Text>
           </View>
-          <Text style={styles.productNameGrade} numberOfLines={1}>{item.nome}</Text>
-          <Text style={styles.productStock}>{item.quantidade} {item.unidade ?? 'un'}</Text>
-        </View>
-      );
-    }
+        ) : (
+          <View style={styles.card}>
+            <View style={styles.cardInfo}>
+              <View style={[styles.iconWrapper, { backgroundColor: status.bg }]}>
+                <Ionicons name="cube" size={20} color={status.text} />
+              </View>
+              <View>
+                <Text style={styles.productName}>{item.nome}</Text>
+                <Text style={styles.productStock}>{item.quantidade} {item.unidade} | R$ {item.preco}</Text>
+              </View>
+            </View>
+            <View style={[styles.badge, { backgroundColor: status.bg }]}>
+              <Text style={[styles.badgeText, { color: status.text }]}>{statusLabel}</Text>
+            </View>
+          </View>
+        )}
+      </>
+    );
 
     return (
-      <View style={styles.card}>
-        <View style={styles.cardInfo}>
-          <View style={[styles.iconWrapper, { backgroundColor: status.bg }]}>
-            <Ionicons name="cube" size={20} color={status.text} />
-          </View>
-          <View>
-            <Text style={styles.productName}>{item.nome}</Text>
-            <Text style={styles.productStock}>{item.quantidade} {item.unidade ?? 'un'}</Text>
-          </View>
-        </View>
-        <View style={[styles.badge, { backgroundColor: status.bg }]}>
-          <Text style={[styles.badgeText, { color: status.text }]}>{statusLabel}</Text>
-        </View>
-      </View>
+      <TouchableOpacity onPress={() => router.push(`/produtos/${item.id}` as any)}>
+        <CardContent />
+      </TouchableOpacity>
     );
   };
 
@@ -94,9 +108,6 @@ export default function Produtos() {
               size={22} 
               color={Colors.primary[600]} 
             />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton}>
-            <Ionicons name="add" size={26} color={Colors.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -152,6 +163,15 @@ export default function Produtos() {
           ListEmptyComponent={renderEmptyComponent}
         />
       )}
+
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => router.push('/produtos/novo' as any)}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="add" size={30} color={Colors.white} />
+      </TouchableOpacity>
+
     </SafeAreaView>
   );
 }
@@ -190,19 +210,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.primary[600],
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: Colors.primary[600],
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
   },
   searchBar: {
     flexDirection: 'row',
@@ -252,7 +259,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Spacing[5],
-    paddingBottom: Spacing[10],
+    paddingBottom: 100, 
   },
   card: {
     backgroundColor: Colors.white,
@@ -268,7 +275,7 @@ const styles = StyleSheet.create({
   },
   cardGrade: {
     backgroundColor: Colors.white,
-    width: '48%',
+    width: 155,
     padding: Spacing[4],
     borderRadius: Radius.xl,
     alignItems: 'center',
@@ -289,6 +296,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textPrimary,
     textAlign: 'center',
+    width: '100%',
   },
   cardInfo: {
     flexDirection: 'row',
@@ -340,5 +348,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.primary[600],
     textTransform: 'uppercase',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary[600],
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });

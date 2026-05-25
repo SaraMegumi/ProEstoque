@@ -2,6 +2,7 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
+import { ProductsProvider } from '../src/contexts/ProductsContext';
 
 function NavigationGuard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,10 +28,16 @@ function NavigationGuard() {
       </View>
     );
   }
+  if (!isAuthenticated) {
+    return <Slot />;
+  }
 
-  return <Slot />;
+  return (
+    <ProductsProvider>
+      <Slot />
+    </ProductsProvider>
+  );
 }
-
 
 export default function RootLayout() {
   return (
