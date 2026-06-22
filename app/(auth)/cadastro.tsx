@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; 
+import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
 
@@ -9,6 +9,7 @@ import Button from "@/src/components/Button";
 import Input from "@/src/components/Input";
 import TemplateTelaFormulario from "@/src/components/TemplateTelaFormulario";
 import LogoProEstoque from "@/src/components/LogoProEstoque";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 type FormFields = {
   nome: string;
@@ -18,6 +19,7 @@ type FormFields = {
 };
 
 export default function Cadastro() {
+  const { registrar } = useAuth();
   const [form, setForm] = useState<FormFields>({
     nome: "",
     email: "",
@@ -49,10 +51,18 @@ export default function Cadastro() {
   const handleCadastro = async () => {
     if (!validate()) return;
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await registrar(form.nome, form.email, form.senha);
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      console.log('ERRO CADASTRO:', JSON.stringify(error?.response?.data));
+      console.log('ERRO STATUS:', error?.response?.status);
+      console.log('ERRO MESSAGE:', error?.message);
+      const mensagem = error?.response?.data?.erro ?? 'Não foi possível criar a conta. Tente novamente.';
+      Alert.alert('Erro ao cadastrar', mensagem);
+    } finally {
       setLoading(false);
-      router.replace("/(tabs)"); 
-    }, 2000);
+    }
   };
 
   return (

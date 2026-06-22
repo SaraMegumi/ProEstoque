@@ -1,5 +1,5 @@
 import React, { useState } from 'react'; 
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
 import Button from '@/src/components/Button';
@@ -15,8 +15,13 @@ export default function Login() {
   const [senha, setSenha] = useState('');
 
   const handleLogin = async () => {
+  try {
     await login(email, senha);
-  };
+  } catch (error: any) {
+    const mensagem = error?.response?.data?.erro ?? 'Não foi possível entrar. Tente novamente.';
+    Alert.alert('Erro ao entrar', mensagem);
+  }
+};
 
   return (
     <TemplateTelaFormulario>

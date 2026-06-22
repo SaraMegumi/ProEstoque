@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import api from '../services/api';
 
 export interface User {
   id: string;
@@ -14,22 +14,19 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, senha: string) => Promise<void>;
+  registrar: (nome: string, email: string, senha: string) => Promise<void>;
   logout: () => Promise<void>;
 }
-
 
 const TOKEN_KEY = '@proestoque:token';
 const USER_KEY = '@proestoque:user';
 
-
 const AuthContext = createContext<AuthContextType | null>(null);
-
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); 
-
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadSession() {
@@ -54,20 +51,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, senha: string) {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await api.post('/auth/login', { email, senha });
+      const { usuario, token: novoToken } = response.data;
 
-      const fakeUser: User = {
-        id: '1',
-        nome: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-        email,
-      };
-      const fakeToken = `token-${Date.now()}`;
+      await AsyncStorage.setItem(TOKEN_KEY, novoToken);
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(usuario));
 
-      await AsyncStorage.setItem(TOKEN_KEY, fakeToken);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(fakeUser));
+      setToken(novoToken);
+      setUser(usuario);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-      setToken(fakeToken);
-      setUser(fakeUser);
+  async function registrar(nome: string, email: string, senha: string) {
+    setIsLoading(true);
+    try {
+      const response = await api.post('/auth/registro', { nome, email, senha });
+      const { usuario, token: novoToken } = response.data;
+
+      await AsyncStorage.setItem(TOKEN_KEY, novoToken);
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(usuario));
+
+      setToken(novoToken);
+      setUser(usuario);
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!token,
         login,
+        registrar,
         logout,
       }}
     >
@@ -99,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
 
 export function useAuth() {
   const context = useContext(AuthContext);
