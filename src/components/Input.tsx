@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { View, TextInput, Text, Pressable, StyleSheet, TextInputProps } from "react-native";
+import {
+  View,
+  TextInput,
+  Text,
+  Pressable,
+  StyleSheet,
+  TextInputProps,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
 
@@ -35,7 +42,6 @@ export default function Input({
           hasError && styles.errorBorder,
         ]}
       >
-     
         {leftIcon && (
           <Ionicons
             name={leftIcon}
@@ -54,9 +60,11 @@ export default function Input({
           {...rest}
         />
 
-        
         {isPassword && (
-          <Pressable onPress={() => setShowPassword((v) => !v)} style={styles.rightIcon}>
+          <Pressable
+            onPress={() => setShowPassword((v) => !v)}
+            style={styles.rightIcon}
+          >
             <Ionicons
               name={showPassword ? "eye-off-outline" : "eye-outline"}
               size={18}
@@ -66,7 +74,6 @@ export default function Input({
         )}
       </View>
 
-  
       {hasError && <Text style={styles.errorText}>{error}</Text>}
       {!hasError && hint && <Text style={styles.hintText}>{hint}</Text>}
     </View>
@@ -76,23 +83,38 @@ export default function Input({
 const styles = StyleSheet.create({
   wrapper: { marginBottom: Spacing[4] },
   label: {
-    fontSize: Typography.fontSize.sm, fontWeight: Typography.fontWeight.semibold,
-    color: Colors.neutral[700], marginBottom: Spacing[1],
+    fontSize: Typography.fontSize.sm,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.neutral[700],
+    marginBottom: Spacing[1],
   },
   inputContainer: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
-    borderWidth: 1.5, borderColor: Colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
     paddingHorizontal: Spacing[3],
   },
-  focused:     { borderColor: Colors.primary[600] },
+  focused: { borderColor: Colors.primary[600] },
   errorBorder: { borderColor: Colors.danger.border },
   input: {
-    flex: 1, paddingVertical: Spacing[3],
-    fontSize: Typography.fontSize.md, color: Colors.textPrimary,
+    flex: 1,
+    paddingVertical: Spacing[3],
+    fontSize: Typography.fontSize.md,
+    color: Colors.textPrimary,
   },
-  leftIcon:  { marginRight: Spacing[2] },
+  leftIcon: { marginRight: Spacing[2] },
   rightIcon: { padding: Spacing[1] },
-  errorText: { marginTop: Spacing[1], fontSize: Typography.fontSize.sm, color: Colors.danger.text },
-  hintText:  { marginTop: Spacing[1], fontSize: Typography.fontSize.sm, color: Colors.textSecondary },
+  errorText: {
+    marginTop: Spacing[1],
+    fontSize: Typography.fontSize.sm,
+    color: Colors.danger.text,
+  },
+  hintText: {
+    marginTop: Spacing[1],
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
 });

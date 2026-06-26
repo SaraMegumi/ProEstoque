@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
-} from 'react-native';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
+} from "react-native";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
 
 function MenuItem({
   icone,
@@ -29,20 +29,22 @@ function MenuItem({
 
 export default function Configuracoes() {
   const { user, logout } = useAuth();
-  const inicial = user?.nome?.charAt(0).toUpperCase() ?? 'U';
+  const inicial = user?.nome?.charAt(0).toUpperCase() ?? "U";
 
   function handleLogout() {
     Alert.alert(
-      'Sair da conta',
-      'Tem certeza que deseja sair? Você precisará fazer login novamente.',
+      "Sair da conta",
+      "Tem certeza que deseja sair? Você precisará fazer login novamente.",
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: "Cancelar", style: "cancel" },
         {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => { await logout(); },
+          text: "Sair",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+          },
         },
-      ]
+      ],
     );
   }
 
@@ -55,8 +57,8 @@ export default function Configuracoes() {
           <Text style={styles.avatarText}>{inicial}</Text>
         </View>
         <View style={styles.perfilInfo}>
-          <Text style={styles.perfilNome}>{user?.nome ?? '—'}</Text>
-          <Text style={styles.perfilEmail}>{user?.email ?? '—'}</Text>
+          <Text style={styles.perfilNome}>{user?.nome ?? "—"}</Text>
+          <Text style={styles.perfilEmail}>{user?.email ?? "—"}</Text>
         </View>
       </View>
 
@@ -91,7 +93,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   content: { paddingBottom: Spacing[10] },
   titulo: {
-    fontSize: Typography.fontSize['2xl'],
+    fontSize: Typography.fontSize["2xl"],
     fontWeight: Typography.fontWeight.black,
     color: Colors.textPrimary,
     paddingHorizontal: Spacing[5],
@@ -102,8 +104,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   perfilCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.surface,
     marginHorizontal: Spacing[4],
     marginTop: Spacing[5],
@@ -118,8 +120,8 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: Radius.full,
     backgroundColor: Colors.primary[600],
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     color: Colors.white,
@@ -142,7 +144,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.bold,
     color: Colors.neutral[400],
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: Spacing[2],
     marginLeft: Spacing[1],
@@ -152,11 +154,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[4],
     borderBottomWidth: 1,
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.danger.bg,
     borderRadius: Radius.lg,
     paddingVertical: Spacing[4],
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderColor: Colors.danger.border,
   },
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.bold,
   },
   versao: {
-    textAlign: 'center',
+    textAlign: "center",
     color: Colors.neutral[200],
     fontSize: Typography.fontSize.xs,
     marginTop: Spacing[6],

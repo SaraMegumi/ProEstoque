@@ -41,8 +41,10 @@ export default function Cadastro() {
     const newErrors: Partial<FormFields> = {};
     if (!form.nome.trim()) newErrors.nome = "Nome é obrigatório";
     if (!form.email.includes("@")) newErrors.email = "E-mail inválido";
-    if (form.senha.length < 6) newErrors.senha = "A senha deve ter pelo menos 6 caracteres";
-    if (form.senha !== form.confirmarSenha) newErrors.confirmarSenha = "As senhas não coincidem";
+    if (form.senha.length < 6)
+      newErrors.senha = "A senha deve ter pelo menos 6 caracteres";
+    if (form.senha !== form.confirmarSenha)
+      newErrors.confirmarSenha = "As senhas não coincidem";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -55,11 +57,13 @@ export default function Cadastro() {
       await registrar(form.nome, form.email, form.senha);
       router.replace("/(tabs)");
     } catch (error: any) {
-      console.log('ERRO CADASTRO:', JSON.stringify(error?.response?.data));
-      console.log('ERRO STATUS:', error?.response?.status);
-      console.log('ERRO MESSAGE:', error?.message);
-      const mensagem = error?.response?.data?.erro ?? 'Não foi possível criar a conta. Tente novamente.';
-      Alert.alert('Erro ao cadastrar', mensagem);
+      console.log("ERRO CADASTRO:", JSON.stringify(error?.response?.data));
+      console.log("ERRO STATUS:", error?.response?.status);
+      console.log("ERRO MESSAGE:", error?.message);
+      const mensagem =
+        error?.response?.data?.erro ??
+        "Não foi possível criar a conta. Tente novamente.";
+      Alert.alert("Erro ao cadastrar", mensagem);
     } finally {
       setLoading(false);
     }
@@ -67,14 +71,11 @@ export default function Cadastro() {
 
   return (
     <TemplateTelaFormulario>
-     
-      <View style={styles.header}>      
-          <LogoProEstoque size="md" />
-          <Ionicons name="card" size={0} color={Colors.primary[600]} />
-          <Text style={styles.title}>Criar conta</Text>
-        </View>
-        
-      
+      <View style={styles.header}>
+        <LogoProEstoque size="md" />
+        <Ionicons name="card" size={0} color={Colors.primary[600]} />
+        <Text style={styles.title}>Criar conta</Text>
+      </View>
 
       <View style={styles.form}>
         <Input
@@ -131,31 +132,31 @@ export default function Cadastro() {
 }
 
 const styles = StyleSheet.create({
-  header: { 
-    alignItems: "center", 
-    marginBottom: Spacing[8] 
+  header: {
+    alignItems: "center",
+    marginBottom: Spacing[8],
   },
-  logoBox: { 
-    backgroundColor: Colors.primary[600], 
-    padding: Spacing[4], 
-    borderRadius: Radius.xl, 
-    marginBottom: Spacing[3] 
+  logoBox: {
+    backgroundColor: Colors.primary[600],
+    padding: Spacing[4],
+    borderRadius: Radius.xl,
+    marginBottom: Spacing[3],
   },
-  title: { 
-    fontSize: Typography.fontSize.xl, 
-    fontWeight: Typography.fontWeight.bold, 
-    color: Colors.textPrimary 
-  },
-  form: { 
-    marginBottom: Spacing[5] 
-  },
-  footer: { 
-    marginTop: Spacing[5], 
-    alignItems: "center" 
-  },
-  footerText: { 
-    color: Colors.primary[600], 
+  title: {
+    fontSize: Typography.fontSize.xl,
     fontWeight: Typography.fontWeight.bold,
-    fontSize: Typography.fontSize.md
+    color: Colors.textPrimary,
+  },
+  form: {
+    marginBottom: Spacing[5],
+  },
+  footer: {
+    marginTop: Spacing[5],
+    alignItems: "center",
+  },
+  footerText: {
+    color: Colors.primary[600],
+    fontWeight: Typography.fontWeight.bold,
+    fontSize: Typography.fontSize.md,
   },
 });

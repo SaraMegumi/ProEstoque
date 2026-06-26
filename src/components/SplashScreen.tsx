@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
-import LogoProEstoque from '@/src/components/LogoProEstoque';
-import { Colors, Typography, Spacing } from '@/src/constants/theme'; 
+import { useEffect, useRef } from "react";
+import { View, Text, Animated, StyleSheet } from "react-native";
+import LogoProEstoque from "@/src/components/LogoProEstoque";
+import { Colors, Typography, Spacing } from "@/src/constants/theme";
 
 export default function CustomSplashScreen() {
   const barWidth = useRef(new Animated.Value(0)).current;
@@ -35,7 +35,7 @@ export default function CustomSplashScreen() {
               {
                 width: barWidth.interpolate({
                   inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
+                  outputRange: ["0%", "100%"],
                 }),
               },
             ]}
@@ -52,16 +52,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.primary[600],
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   inner: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing[3],
   },
   appName: {
     color: Colors.white,
-    fontSize: Typography.fontSize['2xl'],
+    fontSize: Typography.fontSize["2xl"],
     fontWeight: Typography.fontWeight.black,
   },
   tagline: {
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
   barContainer: {
     width: 200,
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: "rgba(255,255,255,0.3)",
     borderRadius: 2,
     marginTop: Spacing[6],
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   barFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: Colors.white,
     borderRadius: 2,
   },

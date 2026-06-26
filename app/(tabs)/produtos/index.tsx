@@ -1,80 +1,136 @@
-import { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView, StatusBar, SectionList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
-import { useProducts } from '@/src/contexts/ProductsContext';
-import React from 'react';
-
-const FILTROS = ['Todos', 'Bebidas', 'Alimentos', 'Limpeza', 'Papelaria', 'Eletrônicos'];
+import { useState, useMemo } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  SectionList,
+  RefreshControl,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
+import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
+import { useProducts } from "@/src/contexts/ProductsContext";
+import { useCategorias } from "@/src/hooks/useCategorias";
+import LoadingView from "@/src/components/LoadingView";
+import ErrorView from "@/src/components/ErrorView";
 
 const normalizar = (str: string) =>
-  str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
 export default function Produtos() {
   const router = useRouter();
-  const { products } = useProducts();
-  
-  const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Todos');
-  const [viewMode, setViewMode] = useState<'lista' | 'grade' | 'categoria'>('lista');
+  const { products, isLoading, error, carregarProdutos } = useProducts();
+  const { categorias } = useCategorias();
+
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState("Todos");
+  const [viewMode, setViewMode] = useState<"lista" | "grade" | "categoria">(
+    "lista",
+  );
+  const [refreshing, setRefreshing] = useState(false);
+
+  const filtros = ["Todos", ...categorias.map((c) => c.nome)];
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await carregarProdutos();
+    setRefreshing(false);
+  };
 
   const filteredData = useMemo(() => {
-    return products.filter((produto: any) => {
-      const matchesSearch = normalizar(produto.nome).includes(normalizar(search));
-      const matchesFilter = activeFilter === 'Todos' || normalizar(produto.categoria) === normalizar(activeFilter);
+    return products.filter((produto) => {
+      const matchesSearch = normalizar(produto.nome).includes(
+        normalizar(search),
+      );
+      const matchesFilter =
+        activeFilter === "Todos" ||
+        normalizar(produto.categoria?.nome ?? "") === normalizar(activeFilter);
       return matchesSearch && matchesFilter;
     });
   }, [search, activeFilter, products]);
 
   const sections = useMemo(() => {
-    if (viewMode !== 'categoria') return [];
-    const categoriasExistentes = [...new Set(products.map((p: any) => p.categoria))];
-    
-    return categoriasExistentes.map(cat => ({
-      title: String(cat),
-      data: filteredData.filter((p: any) => p.categoria === cat)
-    })).filter(section => section.data.length > 0);
+    if (viewMode !== "categoria") return [];
+    const cats = [
+      ...new Set(products.map((p) => p.categoria?.nome ?? "Sem categoria")),
+    ];
+    return cats
+      .map((cat) => ({
+        title: cat,
+        data: filteredData.filter(
+          (p) => (p.categoria?.nome ?? "Sem categoria") === cat,
+        ),
+      }))
+      .filter((s) => s.data.length > 0);
   }, [filteredData, viewMode, products]);
 
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="search-outline" size={60} color={Colors.textSecondary} />
-      <Text style={styles.emptyText}>Ops! Nenhum produto encontrado.</Text>
-      <Text style={styles.emptySubtext}>Tente cadastrar um novo produto no botão +.</Text>
+      <Text style={styles.emptyText}>Nenhum produto encontrado.</Text>
+      <Text style={styles.emptySubtext}>
+        Cadastre um novo produto no botão +.
+      </Text>
     </View>
   );
 
   const renderItem = ({ item }: { item: any }) => {
     const semEstoque = item.quantidade === 0;
-    const baixo = item.quantidade > 0 && item.quantidade <= (item.minimo ?? 0);
-    const status = semEstoque ? Colors.danger : baixo ? Colors.warning : Colors.success;
-    const statusLabel = semEstoque ? 'Sem estoque' : baixo ? 'Baixo' : 'Normal';
+    const baixo =
+      item.quantidade > 0 && item.quantidade <= item.quantidadeMinima;
+    const status = semEstoque
+      ? Colors.danger
+      : baixo
+        ? Colors.warning
+        : Colors.success;
+    const statusLabel = semEstoque ? "Sem estoque" : baixo ? "Baixo" : "Normal";
 
     const CardContent = () => (
       <>
-        {viewMode === 'grade' ? (
+        {viewMode === "grade" ? (
           <View style={styles.cardGrade}>
-            <View style={[styles.iconWrapperGrade, { backgroundColor: status.bg }]}>
+            <View
+              style={[styles.iconWrapperGrade, { backgroundColor: status.bg }]}
+            >
               <Ionicons name="cube" size={28} color={status.text} />
             </View>
-            <Text style={styles.productNameGrade} numberOfLines={1}>{item.nome}</Text>
-            <Text style={styles.productStock}>Estoque: {item.quantidade} {item.unidade}</Text>
+            <Text style={styles.productNameGrade} numberOfLines={1}>
+              {item.nome}
+            </Text>
+            <Text style={styles.productStock}>
+              Estoque: {item.quantidade} {item.unidade}
+            </Text>
           </View>
         ) : (
           <View style={styles.card}>
             <View style={styles.cardInfo}>
-              <View style={[styles.iconWrapper, { backgroundColor: status.bg }]}>
+              <View
+                style={[styles.iconWrapper, { backgroundColor: status.bg }]}
+              >
                 <Ionicons name="cube" size={20} color={status.text} />
               </View>
               <View>
                 <Text style={styles.productName}>{item.nome}</Text>
-                <Text style={styles.productStock}>{item.quantidade} {item.unidade} | R$ {item.preco}</Text>
+                <Text style={styles.productStock}>
+                  {item.quantidade} {item.unidade} | R${" "}
+                  {Number(item.preco).toFixed(2)}
+                </Text>
               </View>
             </View>
             <View style={[styles.badge, { backgroundColor: status.bg }]}>
-              <Text style={[styles.badgeText, { color: status.text }]}>{statusLabel}</Text>
+              <Text style={[styles.badgeText, { color: status.text }]}>
+                {statusLabel}
+              </Text>
             </View>
           </View>
         )}
@@ -82,38 +138,60 @@ export default function Produtos() {
     );
 
     return (
-      <TouchableOpacity onPress={() => router.push(`/produtos/${item.id}` as any)}>
+      <TouchableOpacity
+        onPress={() => router.push(`/produtos/${item.id}` as any)}
+      >
         <CardContent />
       </TouchableOpacity>
     );
   };
 
+  if (isLoading && products.length === 0) {
+    return <LoadingView mensagem="Carregando produtos..." />;
+  }
+
+  if (error && products.length === 0) {
+    return <ErrorView mensagem={error} onRetry={carregarProdutos} />;
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Produtos</Text>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <TouchableOpacity 
-            style={styles.viewToggleButton} 
-            onPress={() => {
-              const modes: ('lista' | 'grade' | 'categoria')[] = ['lista', 'grade', 'categoria'];
-              const nextIndex = (modes.indexOf(viewMode) + 1) % modes.length;
-              setViewMode(modes[nextIndex]);
-            }}
-          >
-            <Ionicons 
-              name={viewMode === 'lista' ? 'grid-outline' : viewMode === 'grade' ? 'layers-outline' : 'list-outline'} 
-              size={22} 
-              color={Colors.primary[600]} 
-            />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.viewToggleButton}
+          onPress={() => {
+            const modes: ("lista" | "grade" | "categoria")[] = [
+              "lista",
+              "grade",
+              "categoria",
+            ];
+            const nextIndex = (modes.indexOf(viewMode) + 1) % modes.length;
+            setViewMode(modes[nextIndex]);
+          }}
+        >
+          <Ionicons
+            name={
+              viewMode === "lista"
+                ? "grid-outline"
+                : viewMode === "grade"
+                  ? "layers-outline"
+                  : "list-outline"
+            }
+            size={22}
+            color={Colors.primary[600]}
+          />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchBar}>
-        <Ionicons name="search-outline" size={18} color={Colors.textSecondary} />
+        <Ionicons
+          name="search-outline"
+          size={18}
+          color={Colors.textSecondary}
+        />
         <TextInput
           placeholder="Buscar produto..."
           placeholderTextColor={Colors.textSecondary}
@@ -122,82 +200,99 @@ export default function Produtos() {
           onChangeText={setSearch}
         />
       </View>
-      
+
       <View style={styles.filterWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContent}>
-          {FILTROS.map((f) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContent}
+        >
+          {filtros.map((f) => (
             <TouchableOpacity
               key={f}
               style={[styles.chip, activeFilter === f && styles.chipActive]}
               onPress={() => setActiveFilter(f)}
             >
-              <Text style={[styles.chipText, activeFilter === f && styles.chipTextActive]}>{f}</Text>
+              <Text
+                style={[
+                  styles.chipText,
+                  activeFilter === f && styles.chipTextActive,
+                ]}
+              >
+                {f}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      {viewMode === 'categoria' ? (
+      {viewMode === "categoria" ? (
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
-          stickySectionHeadersEnabled={true}
+          stickySectionHeadersEnabled
           ListEmptyComponent={renderEmptyComponent}
           contentContainerStyle={styles.listContent}
           renderSectionHeader={({ section: { title, data } }) => (
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionHeaderText}>{title} ({data.length})</Text>
+              <Text style={styles.sectionHeaderText}>
+                {title} ({data.length})
+              </Text>
             </View>
           )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       ) : (
         <FlatList
           key={viewMode}
           data={filteredData}
-          numColumns={viewMode === 'grade' ? 2 : 1}
-          columnWrapperStyle={viewMode === 'grade' ? { justifyContent: 'space-between' } : null}
+          numColumns={viewMode === "grade" ? 2 : 1}
+          columnWrapperStyle={
+            viewMode === "grade" ? { justifyContent: "space-between" } : null
+          }
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmptyComponent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/produtos/novo' as any)}
+        onPress={() => router.push("/produtos/novo" as any)}
         activeOpacity={0.7}
       >
         <Ionicons name="add" size={30} color={Colors.white} />
       </TouchableOpacity>
-
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 50,
     paddingHorizontal: 20,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginHorizontal: Spacing[5],
     marginTop: Spacing[4],
     marginBottom: Spacing[3],
   },
   headerTitle: {
-    fontSize: Typography.fontSize['3xl'],
+    fontSize: Typography.fontSize["3xl"],
     fontWeight: Typography.fontWeight.bold,
     color: Colors.textPrimary,
   },
@@ -206,14 +301,14 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: Radius.md,
     backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: Colors.border,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     marginHorizontal: Spacing[5],
     marginBottom: Spacing[3],
@@ -229,46 +324,30 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.textPrimary,
   },
-  filterWrapper: {
-    height: 50,
-    marginBottom: Spacing[2],
-  },
+  filterWrapper: { height: 50, marginBottom: Spacing[2] },
   filterContent: {
     paddingHorizontal: Spacing[5],
-    alignItems: 'center',
+    alignItems: "center",
     gap: 10,
   },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: Radius.full,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F3F4F6",
   },
-  chipActive: {
-    backgroundColor: Colors.primary[600],
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  chipTextActive: {
-    color: Colors.white,
-  },
-  listContent: {
-    paddingHorizontal: Spacing[5],
-    paddingBottom: 100, 
-  },
+  chipActive: { backgroundColor: Colors.primary[600] },
+  chipText: { fontSize: 14, fontWeight: "500", color: "#6B7280" },
+  chipTextActive: { color: Colors.white },
+  listContent: { paddingHorizontal: Spacing[5], paddingBottom: 100 },
   card: {
     backgroundColor: Colors.white,
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[3],
     borderRadius: Radius.xl,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing[3],
     borderWidth: 1,
     borderColor: Colors.border,
@@ -278,7 +357,7 @@ const styles = StyleSheet.create({
     width: 155,
     padding: Spacing[4],
     borderRadius: Radius.xl,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: Spacing[4],
     borderWidth: 1,
     borderColor: Colors.border,
@@ -287,21 +366,18 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: Radius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
   productNameGrade: {
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 14,
     color: Colors.textPrimary,
-    textAlign: 'center',
-    width: '100%',
+    textAlign: "center",
+    width: "100%",
   },
-  cardInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  cardInfo: { flexDirection: "row", alignItems: "center" },
   iconWrapper: {
     padding: Spacing[2],
     borderRadius: Radius.md,
@@ -328,14 +404,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.textPrimary,
     marginTop: Spacing[4],
   },
   emptySubtext: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: Spacing[2],
   },
   sectionHeader: {
@@ -345,22 +421,22 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.primary[600],
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     bottom: 30,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: Colors.primary[600],
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,

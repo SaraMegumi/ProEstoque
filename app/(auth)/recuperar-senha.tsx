@@ -1,42 +1,45 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState } from "react";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { Colors, Typography, Spacing, Radius } from '@/src/constants/theme';
+import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
 
-import Button from '@/src/components/Button';
-import Input from '@/src/components/Input';
-import TemplateTelaFormulario from '@/src/components/TemplateTelaFormulario';
+import Button from "@/src/components/Button";
+import Input from "@/src/components/Input";
+import TemplateTelaFormulario from "@/src/components/TemplateTelaFormulario";
 
-import LogoProEstoque from '@/src/components/LogoProEstoque';
+import LogoProEstoque from "@/src/components/LogoProEstoque";
 
 export default function RecuperarSenha() {
   const [isSuccess, setIsSuccess] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleRecuperar = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      setIsSuccess(true); 
+      setIsSuccess(true);
     }, 1500);
   };
 
   return (
     <TemplateTelaFormulario>
-    
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={20} color={Colors.primary[600]} />
         <Text style={styles.backText}>Voltar</Text>
       </TouchableOpacity>
 
-        <View style={styles.content}>
-          <LogoProEstoque size="md" />
-          <Ionicons name="lock-open-outline" size={40} color={Colors.primary[600]} />
-          <Text style={styles.title}>Recuperar senha</Text>
-        
+      <View style={styles.content}>
+        <LogoProEstoque size="md" />
+        <Ionicons
+          name="lock-open-outline"
+          size={40}
+          color={Colors.primary[600]}
+        />
+        <Text style={styles.title}>Recuperar senha</Text>
+
         {!isSuccess ? (
           <>
             <Text style={styles.subtitle}>
@@ -44,7 +47,7 @@ export default function RecuperarSenha() {
             </Text>
 
             <View style={styles.form}>
-              <Input 
+              <Input
                 label="E-mail"
                 placeholder="joao@email.com"
                 leftIcon="mail-outline"
@@ -55,30 +58,31 @@ export default function RecuperarSenha() {
               />
             </View>
 
-            <Button 
-              label="Enviar Link" 
-              onPress={handleRecuperar} 
+            <Button
+              label="Enviar Link"
+              onPress={handleRecuperar}
               loading={loading}
               fullWidth
             />
           </>
         ) : (
           <>
-            
             <View style={styles.successCard}>
-              <MaterialCommunityIcons 
-                name="email-check-outline" 
-                size={60} 
-                color={Colors.success.text} 
+              <MaterialCommunityIcons
+                name="email-check-outline"
+                size={60}
+                color={Colors.success.text}
               />
               <Text style={styles.successTitle}>E-mail enviado!</Text>
-              <Text style={styles.successSubtitle}>Verifique sua caixa de entrada</Text>
+              <Text style={styles.successSubtitle}>
+                Verifique sua caixa de entrada
+              </Text>
             </View>
 
-            <Button 
-              label="Voltar ao Login" 
-              onPress={() => router.back()} 
-              variant="outline" 
+            <Button
+              label="Voltar ao Login"
+              onPress={() => router.back()}
+              variant="outline"
               fullWidth
             />
           </>
@@ -89,61 +93,61 @@ export default function RecuperarSenha() {
 }
 
 const styles = StyleSheet.create({
-  backButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: Spacing[5] 
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing[5],
   },
-  backText: { 
-    color: Colors.primary[600], 
-    marginLeft: Spacing[1], 
-    fontWeight: Typography.fontWeight.bold 
+  backText: {
+    color: Colors.primary[600],
+    marginLeft: Spacing[1],
+    fontWeight: Typography.fontWeight.bold,
   },
-  content: { 
-    alignItems: 'center'
+  content: {
+    alignItems: "center",
   },
-  logoBox: { 
-    backgroundColor: Colors.primary[600], 
-    padding: Spacing[5], 
-    borderRadius: Radius.xl, 
-    marginBottom: Spacing[4] 
+  logoBox: {
+    backgroundColor: Colors.primary[600],
+    padding: Spacing[5],
+    borderRadius: Radius.xl,
+    marginBottom: Spacing[4],
   },
-  title: { 
-    fontSize: Typography.fontSize.xl, 
-    fontWeight: Typography.fontWeight.bold, 
-    color: Colors.textPrimary, 
-    marginBottom: Spacing[2] 
+  title: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing[2],
   },
-  subtitle: { 
-    fontSize: Typography.fontSize.md, 
-    color: Colors.textSecondary, 
-    textAlign: 'center', 
-    marginBottom: Spacing[8] 
+  subtitle: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: "center",
+    marginBottom: Spacing[8],
   },
-  form: { 
-    width: '100%', 
-    marginBottom: Spacing[5] 
+  form: {
+    width: "100%",
+    marginBottom: Spacing[5],
   },
   successCard: {
-    width: '100%',
-    backgroundColor: Colors.success.bg, 
+    width: "100%",
+    backgroundColor: Colors.success.bg,
     borderWidth: 1,
     borderColor: Colors.success.border,
     borderRadius: Radius.lg,
     padding: Spacing[8],
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: Spacing[8],
   },
-  successTitle: { 
-    fontSize: Typography.fontSize.lg, 
-    fontWeight: Typography.fontWeight.bold, 
-    color: Colors.success.text, 
-    marginTop: Spacing[2] 
+  successTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.success.text,
+    marginTop: Spacing[2],
   },
-  successSubtitle: { 
-    fontSize: Typography.fontSize.base, 
-    color: Colors.success.text, 
-    textAlign: 'center', 
-    marginTop: Spacing[1] 
+  successSubtitle: {
+    fontSize: Typography.fontSize.base,
+    color: Colors.success.text,
+    textAlign: "center",
+    marginTop: Spacing[1],
   },
 });
